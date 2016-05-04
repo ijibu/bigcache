@@ -11,6 +11,7 @@ const (
 	headersSizeInBytes   = timestampSizeInBytes + hashSizeInBytes + keySizeInBytes // Number of bytes used for all headers
 )
 
+//包裹实体
 func wrapEntry(timestamp uint64, hash uint64, key string, entry []byte, buffer *[]byte) []byte {
 	keyLength := len(key)
 	blobLength := len(entry) + headersSizeInBytes + keyLength
@@ -29,6 +30,7 @@ func wrapEntry(timestamp uint64, hash uint64, key string, entry []byte, buffer *
 	return blob[:blobLength]
 }
 
+//读取实体
 func readEntry(data []byte) []byte {
 	length := binary.LittleEndian.Uint16(data[timestampSizeInBytes+hashSizeInBytes:])
 	return data[headersSizeInBytes+length:]

@@ -9,27 +9,28 @@ import (
 )
 
 const (
-	minimumEntriesInShard = 10 // Minimum number of entries in single shard
+	minimumEntriesInShard = 10 // Minimum number of entries in single shard，单个分区里面最小的缓存实体容量
 )
 
 // BigCache is fast, concurrent, evicting cache created to keep big number of entries without impact on performance.
 // It keeps entries on heap but omits GC for them. To achieve that operations on bytes arrays take place,
 // therefore entries (de)serialization in front of the cache will be needed in most use cases.
 type BigCache struct {
-	shards       []*cacheShard
-	lifeWindow   uint64
+	shards       []*cacheShard //分区链
+	lifeWindow   uint64        //生命周期
 	clock        clock
-	hash         Hasher
-	config       Config
+	hash         Hasher //计算hash的
+	config       Config //配置信息段
 	shardMask    uint64
-	maxShardSize uint32
+	maxShardSize uint32 //最大分区数量
 }
 
+//一个缓存分区块
 type cacheShard struct {
-	hashmap     map[uint64]uint32
-	entries     queue.BytesQueue
-	lock        sync.RWMutex
-	entryBuffer []byte
+	hashmap     map[uint64]uint32 //哈希表
+	entries     queue.BytesQueue  //缓存实体队列FIFO
+	lock        sync.RWMutex      //锁
+	entryBuffer []byte            //实体缓冲
 }
 
 // NewBigCache initialize new instance of BigCache
@@ -47,6 +48,7 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 		config.Hasher = newDefaultHasher()
 	}
 
+	//每个分区的内存大小
 	maxShardSize := 0
 	if config.HardMaxCacheSize > 0 {
 		maxShardSize = convertMBToBytes(config.HardMaxCacheSize) / config.Shards
@@ -62,10 +64,11 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 		maxShardSize: uint32(maxShardSize),
 	}
 
+	//初始缓存分区块的大小，一个分区块可以放多少个缓存项
 	initShardSize := max(config.MaxEntriesInWindow/config.Shards, minimumEntriesInShard)
 	for i := 0; i < config.Shards; i++ {
 		cache.shards[i] = &cacheShard{
-			hashmap:     make(map[uint64]uint32, initShardSize),
+			hashmap:     make(map[uint64]uint32, initShardSize), //性能考虑，事先分配好map的大小。
 			entries:     *queue.NewBytesQueue(initShardSize*config.MaxEntrySize, maxShardSize, config.Verbose),
 			entryBuffer: make([]byte, config.MaxEntrySize+headersSizeInBytes),
 		}
@@ -125,6 +128,7 @@ func (c *BigCache) Set(key string, entry []byte) error {
 
 	w := wrapEntry(currentTimestamp, hashedKey, key, entry, &shard.entryBuffer)
 
+	//首先往队列里面放，如果放不进去再移除最老的实体。如此循环，直到成功放进去或者移除实体失败返回false为止。
 	for {
 		if index, err := shard.entries.Push(w); err == nil {
 			shard.hashmap[hashedKey] = uint32(index)
@@ -152,6 +156,7 @@ func (s *cacheShard) removeOldestEntry() error {
 	return err
 }
 
+//根据hash值获取分区
 func (c *BigCache) getShard(hashedKey uint64) (shard *cacheShard) {
 	return c.shards[hashedKey&c.shardMask]
 }
