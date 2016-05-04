@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/allegro/bigcache/queue"
+	"github.com/ijibu/bigcache/queue"
 )
 
 const (
