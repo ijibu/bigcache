@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	headerEntrySize      = 4
+	headerEntrySize      = 4                                                       // Number of bytes used to keep information about entry size
 	timestampSizeInBytes = 8                                                       // Number of bytes used for timestamp
 	hashSizeInBytes      = 8                                                       // Number of bytes used for hash
 	keySizeInBytes       = 2                                                       // Number of bytes used for size of entry key
