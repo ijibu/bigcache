@@ -7,12 +7,13 @@ import (
 )
 
 const (
-	// Number of bytes used to keep information about entry size
+	// Number of bytes used to keep information about entry size 用多少byte来存储实体所有信息
 	headerEntrySize = 4
 	// Bytes before left margin are not used. Zero index means element does not exist in queue, useful while reading slice from index
 	leftMarginIndex = 1
 	// Minimum empty blob size in bytes. Empty blob fills space between tail and head in additional memory allocation.
 	// It keeps entries indexes unchanged
+	// 实体块的最小大小
 	minimumEmptyBlobSize = 32 + headerEntrySize
 )
 
