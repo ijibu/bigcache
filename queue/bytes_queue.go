@@ -26,7 +26,7 @@ type BytesQueue struct {
 	head         int
 	tail         int
 	count        int
-	rightMargin  int
+	rightMargin  int //右边距，这个值以后面的字节才能使用来存储数据。
 	headerBuffer []byte
 	verbose      bool
 }
@@ -56,6 +56,7 @@ func NewBytesQueue(initialCapacity int, maxCapacity int, verbose bool) *BytesQue
 func (q *BytesQueue) Push(data []byte) (int, error) {
 	dataLen := len(data)
 
+	//如果尾部剩余空间不够用，查看头部剩余空间够用不，否则需要增加空间以便使用。
 	if q.availableSpaceAfterTail() < dataLen+headerEntrySize {
 		if q.availableSpaceBeforeHead() >= dataLen+headerEntrySize {
 			q.tail = leftMarginIndex
@@ -73,6 +74,7 @@ func (q *BytesQueue) Push(data []byte) (int, error) {
 	return index, nil
 }
 
+//分配需要增加的内存
 func (q *BytesQueue) allocateAdditionalMemory(minimum int) {
 	start := time.Now()
 	if q.capacity < minimum {
@@ -102,6 +104,7 @@ func (q *BytesQueue) allocateAdditionalMemory(minimum int) {
 	}
 }
 
+//往队列中放入一定长度的数据
 func (q *BytesQueue) push(data []byte, len int) {
 	binary.LittleEndian.PutUint32(q.headerBuffer, uint32(len))
 	q.copy(q.headerBuffer, headerEntrySize)
@@ -115,6 +118,7 @@ func (q *BytesQueue) push(data []byte, len int) {
 	q.count++
 }
 
+//切片之间的复制
 func (q *BytesQueue) copy(data []byte, len int) {
 	q.tail += copy(q.array[q.tail:], data[:len])
 }
@@ -185,6 +189,7 @@ func (q *BytesQueue) peek(index int) ([]byte, int, error) {
 	return q.array[index+headerEntrySize : index+headerEntrySize+blockSize], blockSize, nil
 }
 
+//返回结尾剩余可用的空间
 func (q *BytesQueue) availableSpaceAfterTail() int {
 	if q.tail >= q.head {
 		return q.capacity - q.tail
@@ -192,6 +197,7 @@ func (q *BytesQueue) availableSpaceAfterTail() int {
 	return q.head - q.tail - minimumEmptyBlobSize
 }
 
+//返回头部之前可用的空间
 func (q *BytesQueue) availableSpaceBeforeHead() int {
 	if q.tail >= q.head {
 		return q.head - leftMarginIndex - minimumEmptyBlobSize
