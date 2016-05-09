@@ -30,7 +30,7 @@ type cacheShard struct {
 	hashmap     map[uint64]uint32 //哈希表
 	entries     queue.BytesQueue  //缓存实体队列FIFO
 	lock        sync.RWMutex      //锁
-	entryBuffer []byte            //实体缓冲，每次往缓存中写入数据时，都会用这个缓冲，避免每次去分配内存。
+	entryBuffer []byte            //实体缓冲，每次往缓存中写入数据时，都会用这个缓冲，重复利用内存。
 }
 
 // NewBigCache initialize new instance of BigCache

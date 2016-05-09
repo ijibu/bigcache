@@ -7,7 +7,7 @@ import (
 const (
 	timestampSizeInBytes = 8                                                       // Number of bytes used for timestamp 用8个byte存储timestamp
 	hashSizeInBytes      = 8                                                       // Number of bytes used for hash 用8个byte存储hashKey
-	keySizeInBytes       = 2                                                       // Number of bytes used for size of entry key 用两个byte来储存key的长度
+	keySizeInBytes       = 2                                                       // Number of bytes used for size of entry key 用两个byte来储存key的长度，所以key的长度最多为65535。
 	headersSizeInBytes   = timestampSizeInBytes + hashSizeInBytes + keySizeInBytes // Number of bytes used for all headers 所有头部信息的长度
 )
 

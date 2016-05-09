@@ -26,8 +26,8 @@ type BytesQueue struct {
 	head         int
 	tail         int
 	count        int
-	rightMargin  int //右边距，这个值以后面的字节才能使用来存储数据。
-	headerBuffer []byte
+	rightMargin  int    //右边距，这个值以后面的字节才能使用来存储数据。
+	headerBuffer []byte //4个字节的头部信息缓冲，方便重复使用这部分内存。
 	verbose      bool
 }
 
