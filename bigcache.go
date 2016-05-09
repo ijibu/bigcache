@@ -30,7 +30,7 @@ type cacheShard struct {
 	hashmap     map[uint64]uint32 //哈希表
 	entries     queue.BytesQueue  //缓存实体队列FIFO
 	lock        sync.RWMutex      //锁
-	entryBuffer []byte            //实体缓冲
+	entryBuffer []byte            //实体缓冲，每次往缓存中写入数据时，都会用这个缓冲，避免每次去分配内存。
 }
 
 // NewBigCache initialize new instance of BigCache
@@ -139,17 +139,21 @@ func (c *BigCache) Set(key string, entry []byte) error {
 	}
 }
 
+//淘汰最老的过期的缓存
 func (c *BigCache) onEvict(oldestEntry []byte, currentTimestamp uint64, evict func() error) {
 	oldestTimestamp := readTimestampFromEntry(oldestEntry)
+	//如果过期了，则进行淘汰
 	if currentTimestamp-oldestTimestamp > c.lifeWindow {
 		evict()
 	}
 }
 
+//删除最老的一个缓存，不管过没过期
 func (s *cacheShard) removeOldestEntry() error {
 	oldest, err := s.entries.Pop()
 	if err == nil {
 		hash := readHashFromEntry(oldest)
+		//从hashmap中删除一个元素
 		delete(s.hashmap, hash)
 		return nil
 	}

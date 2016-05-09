@@ -17,12 +17,15 @@ func wrapEntry(timestamp uint64, hash uint64, key string, entry []byte, buffer *
 	blobLength := len(entry) + headersSizeInBytes + keyLength
 
 	if blobLength > len(*buffer) {
+		//重新分配内存
 		*buffer = make([]byte, blobLength)
 	}
 	blob := *buffer
 
+	//uint64正好8个字节
 	binary.LittleEndian.PutUint64(blob, timestamp)
 	binary.LittleEndian.PutUint64(blob[timestampSizeInBytes:], hash)
+	//uint16正好2个字节
 	binary.LittleEndian.PutUint16(blob[timestampSizeInBytes+hashSizeInBytes:], uint16(keyLength))
 	copy(blob[headersSizeInBytes:], []byte(key))
 	copy(blob[headersSizeInBytes+keyLength:], entry)

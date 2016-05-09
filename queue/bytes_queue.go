@@ -124,6 +124,7 @@ func (q *BytesQueue) copy(data []byte, len int) {
 }
 
 // Pop reads the oldest entry from queue and moves head pointer to the next one
+// 返回最老的一个实体缓存，并且会修改头指针到下一个元素。
 func (q *BytesQueue) Pop() ([]byte, error) {
 	data, size, err := q.peek(q.head)
 	if err != nil {
@@ -145,6 +146,7 @@ func (q *BytesQueue) Pop() ([]byte, error) {
 }
 
 // Peek reads the oldest entry from list without moving head pointer
+// 返回最老的一个实体缓存，但是不会修改头指针
 func (q *BytesQueue) Peek() ([]byte, error) {
 	data, _, err := q.peek(q.head)
 	return data, err
@@ -171,6 +173,7 @@ func (e *queueError) Error() string {
 	return e.message
 }
 
+//返回指定索引位置后的实体信息块
 func (q *BytesQueue) peek(index int) ([]byte, int, error) {
 
 	if q.count == 0 {
